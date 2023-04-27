@@ -9,26 +9,26 @@ namespace Triangles
 {
     public class ShaderProgram
     {
-        private Shader vertex, fragment;
+        private Shader _vertex, _fragment;
         public int ProgramObject { get; private set; }
 
         public ShaderProgram()
         {
-            vertex = new Shader();
-            fragment = new Shader();
+            _vertex = new Shader();
+            _fragment = new Shader();
             ProgramObject = -1;
         }
         public void Init(string vName, string fName)
         {
             //int success = 0; //local variable to check status
             //load and compile vertex shader
-            var success = vertex.ReadAndCompile(vName, ShaderType.VertexShader);
+            var success = _vertex.ReadAndCompile(vName, ShaderType.VertexShader);
             if (success != 0)
             {
                 throw new Exception("Vertex Compilation Error");
             }
             //load and compile fragment shader
-            success = fragment.ReadAndCompile(fName, ShaderType.FragmentShader); 
+            success = _fragment.ReadAndCompile(fName, ShaderType.FragmentShader); 
             if (success != 0)
             {
                 throw new Exception("Fragment Compilation Error");
@@ -36,8 +36,8 @@ namespace Triangles
             //create programObject
             ProgramObject = GL.CreateProgram();
             //attach shaders
-            GL.AttachShader(ProgramObject, vertex.ShaderObject);
-            GL.AttachShader(ProgramObject, fragment.ShaderObject);
+            GL.AttachShader(ProgramObject, _vertex.ShaderObject);
+            GL.AttachShader(ProgramObject, _fragment.ShaderObject);
 
             GL.Ext.BindFragDataLocation(ProgramObject, 0, "fragColor");
 
@@ -48,10 +48,10 @@ namespace Triangles
             {
                 Console.WriteLine(errorLog);
 
-                GL.DetachShader(ProgramObject, vertex.ShaderObject);
-                GL.DetachShader(ProgramObject, fragment.ShaderObject);
-                vertex.Release();
-                fragment.Release();
+                GL.DetachShader(ProgramObject, _vertex.ShaderObject);
+                GL.DetachShader(ProgramObject, _fragment.ShaderObject);
+                _vertex.Release();
+                _fragment.Release();
 
                 throw new Exception("Link Error");
             }
