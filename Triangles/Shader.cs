@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.ES30;
@@ -11,69 +12,60 @@ namespace Triangles
     public class Shader
     {
 
-        public enum STATUS { SUCCESS, FILE_NOT_FOUND, EMPTY_FILE, READ_ERROR };
-        public int shaderObject;
-        private STATUS iStatus;
-        private string strName = "";
-        private string strSource = "";
-        private ShaderType shaderType;
+        public enum Status { SUCCESS, FILE_NOT_FOUND, EMPTY_FILE, READ_ERROR };
+        public int ShaderObject { get; private set; }
+        public ShaderType ShaderType { get; private set; }
         public Shader() { }
-        //~Shader();
-        public STATUS read(string filename, ShaderType type)
+        private Status Read(string filename, ShaderType type)
         {
-            strName = filename;
-
+            var strSource = "";
             try
             {
-                strSource = File.ReadAllText(strName);
+                strSource = File.ReadAllText(filename);
             }
             catch
             {
-                return STATUS.FILE_NOT_FOUND;
+                return Status.FILE_NOT_FOUND;
             }
 
-            shaderType = type;
-            shaderObject = GL.CreateShader(shaderType);
+            ShaderType = type;
+            ShaderObject = GL.CreateShader(ShaderType);
             if (strSource.Length > 0)
-                GL.ShaderSource(shaderObject, strSource);
+                GL.ShaderSource(ShaderObject, strSource);
 
-            return iStatus;
+            return Status.SUCCESS;
 
         }
-        public int compile()
+        private int Compile()
         {
-            int success = 0;
-            GL.CompileShader(shaderObject);
-            GL.GetShaderInfoLog(shaderObject, out var errorLog);
+            GL.CompileShader(ShaderObject);
+            GL.GetShaderInfoLog(ShaderObject, out var errorLog);
             if (!String.IsNullOrEmpty(errorLog))
             {
-                Console.WriteLine($"Shader {shaderType} compile error");
+                Console.WriteLine($"Shader {ShaderType} compile error");
                 Console.WriteLine(errorLog);
-                GL.DeleteShader(shaderObject);
-                success = 1;
+                GL.DeleteShader(ShaderObject);
+                return 1;
             }
             else
                 Console.WriteLine($"Shader compilation succeed");
-
-
-            return success;
+            return 0;
         }
-        public int readAndCompile(string filename, ShaderType type)
+        public int ReadAndCompile(string filename, ShaderType type)
         {
-            read(filename, type);
-            if (iStatus != STATUS.SUCCESS)
+            if (Read(filename, type) != Status.SUCCESS)
             {
                 Console.WriteLine("Error while reading shader. Invalid name or empty file.");
                 return 1;
             }
-            return compile();
+            return Compile();
         }
         public void Release()
         {
-            if (shaderObject > 0)
+            if (ShaderObject > 0)
             {
-                GL.DeleteShader(shaderObject);
-                shaderObject = -1;
+                GL.DeleteShader(ShaderObject);
+                ShaderObject = -1;
             }
         }
 

@@ -11,55 +11,55 @@ namespace Triangles // Note: actual namespace depends on the project name.
 {
     public class MyWindow : GameWindow
     {
+        //window size
+        private static int _windowWidth = 800;
+        private static int _windowHeight = 600;
+
         //model for drawing: a square from two triangles
-        private Branch pBranch = new Branch();
-        private Leaf pLeaf = new Leaf();
+        private Branch _pBranch = new Branch();
+        private Leaf _pLeaf = new Leaf();
 
 
         //struct for loading shaders
-        private ShaderProgram shaderProgram = new ShaderProgram();
-
-        //window size
-        private static int windowWidth = 800;
-        private static int windowHeight = 600;
+        private ShaderProgram _shaderProgram = new ShaderProgram();
 
         //last mouse coordinates
         private int mouseX, mouseY;
 
         //camera position
-        private Vector3 eye = new Vector3(0, 0, 10);
+        private Vector3 _eye = new Vector3(0, 0, 10);
         //reference point position
-        private Vector3 cen = new Vector3(0, 0, 0);
+        private Vector3 _cen = new Vector3(0, 0, 0);
         //up vector direction (head of observer)
-        private Vector3 up = new Vector3(0, 1, 0);
+        private Vector3 _up = new Vector3(0, 1, 0);
 
         //matrices
-        private Matrix4 modelMatrix = new Matrix4();
-        private Matrix4 modelViewMatrix = new Matrix4();
-        private Matrix4 projectionMatrix = new Matrix4();
-        private Matrix4 modelViewProjectionMatrix = new Matrix4();
-        private Matrix4 normalMatrix = new Matrix4();
+        private Matrix4 _modelMatrix = new Matrix4();
+        private Matrix4 _modelViewMatrix = new Matrix4();
+        private Matrix4 _projectionMatrix = new Matrix4();
+        private Matrix4 _modelViewProjectionMatrix = new Matrix4();
+        private Matrix4 _normalMatrix = new Matrix4();
 
         ///defines drawing mode
-        static bool useTexture = true;
+        static bool _useTexture = true;
 
         //texture identificator
-        static uint[] texId = new uint[1];
+        static uint[] _texId = new uint[1];
 
         //names of shader files. program will search for them during execution
         //don't forget place it near executable 
         static string VertexShaderName = @"Shaders\Vertex.vert";
         static string FragmentShaderName = @"Shaders\Fragment.frag";
 
-        private void initTexture()
+        private void InitTexture()
         {
             //generate as many textures as you need
-            GL.GenTextures(1, texId);
+            GL.GenTextures(1, _texId);
 
             //enable texturing and zero slot
             GL.ActiveTexture(TextureUnit.Texture0);
             //bind texId to 0 unit
-            GL.BindTexture(TextureTarget.Texture2D, texId[0]);
+            GL.BindTexture(TextureTarget.Texture2D, _texId[0]);
 
             //don't use alignment
             GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
@@ -84,7 +84,7 @@ namespace Triangles // Note: actual namespace depends on the project name.
         }
         public MyWindow() :
             base(new GameWindowSettings() { RenderFrequency = 60, UpdateFrequency = 60 },
-                 new NativeWindowSettings() { Title = "Test App", Size = new(windowWidth, windowHeight) })
+                 new NativeWindowSettings() { Title = "Test App", Size = new(_windowWidth, _windowHeight) })
         {
 
         }
@@ -98,23 +98,23 @@ namespace Triangles // Note: actual namespace depends on the project name.
             GL.DepthFunc(DepthFunction.Less);
             GL.DepthMask(true);
             //initialize shader program
-            shaderProgram.init(VertexShaderName, FragmentShaderName);
+            _shaderProgram.Init(VertexShaderName, FragmentShaderName);
             //use this shader program
-            GL.UseProgram(shaderProgram.programObject);
+            GL.UseProgram(_shaderProgram.ProgramObject);
             //create new branch
-            pBranch = new Branch();
+            _pBranch = new Branch();
             //fill in data
-            pBranch.initData();
+            _pBranch.InitData();
             //initialize opengl buffers and variables inside of object
-            pBranch.initGLBuffers((uint)shaderProgram.programObject, "pos", "nor", "tex");
+            _pBranch.InitGLBuffers((uint)_shaderProgram.ProgramObject, "pos", "nor", "tex");
             //create new leaf
-            pLeaf = new Leaf();
+            _pLeaf = new Leaf();
             //fill in data
-            pLeaf.initData();
+            _pLeaf.InitData();
             //initialize opengl buffers and variables inside of object
-            pLeaf.initGLBuffers((uint)shaderProgram.programObject, "pos", "nor", "tex");
+            _pLeaf.InitGLBuffers((uint)_shaderProgram.ProgramObject, "pos", "nor", "tex");
             //initializa texture
-            initTexture();
+            InitTexture();
             base.OnLoad();
         }
 
@@ -122,8 +122,8 @@ namespace Triangles // Note: actual namespace depends on the project name.
         ///called when window size is changed
         protected override void OnResize(ResizeEventArgs e)
         {
-            windowWidth = e.Width;
-            windowHeight = e.Height;
+            _windowWidth = e.Width;
+            _windowHeight = e.Height;
             //set viewport to match window size
             GL.Viewport(0, 0, e.Width, e.Height);
 
@@ -132,12 +132,12 @@ namespace Triangles // Note: actual namespace depends on the project name.
             float zNear = 0.1f;
             float zFar = 100.0f;
             //set projection matrix
-            projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fieldOfView), aspectRatio, zNear, zFar);
+            _projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fieldOfView), aspectRatio, zNear, zFar);
         }
 
         ////////////////////////////////////////////////////////////////////
         ///actions for single frame
-        private void display()
+        private void Display()
         {
             GL.ClearColor(0, 0, 0, 0);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -145,14 +145,14 @@ namespace Triangles // Note: actual namespace depends on the project name.
             //Draw triangle with shaders (in screen coordinates)
             //need to set uniform in modelViewMatrix
 
-            GL.UseProgram(shaderProgram.programObject);
+            GL.UseProgram(_shaderProgram.ProgramObject);
 
             //we will need this uniform locations to connect them to our variables
-            int locMV = GL.GetUniformLocation(shaderProgram.programObject, "modelViewMatrix");
-            int locN = GL.GetUniformLocation(shaderProgram.programObject, "normalMatrix");
-            int locP = GL.GetUniformLocation(shaderProgram.programObject, "modelViewProjectionMatrix");
-            int texLoc = GL.GetUniformLocation(shaderProgram.programObject, "textureSampler");
-            int locFlag = GL.GetUniformLocation(shaderProgram.programObject, "useTexture");
+            int locMV = GL.GetUniformLocation(_shaderProgram.ProgramObject, "modelViewMatrix");
+            int locN = GL.GetUniformLocation(_shaderProgram.ProgramObject, "normalMatrix");
+            int locP = GL.GetUniformLocation(_shaderProgram.ProgramObject, "modelViewProjectionMatrix");
+            int texLoc = GL.GetUniformLocation(_shaderProgram.ProgramObject, "textureSampler");
+            int locFlag = GL.GetUniformLocation(_shaderProgram.ProgramObject, "useTexture");
             //if there is some problem
             if (locMV < 0 || locN < 0 || locP < 0 || texLoc < 0 || locFlag < 0)
             {
@@ -166,7 +166,7 @@ namespace Triangles // Note: actual namespace depends on the project name.
             }
 
             //camera matrix. camera is placed in point "eye" and looks at point "cen".
-            Matrix4 viewMatrix = Matrix4.LookAt(eye, cen, up);
+            Matrix4 viewMatrix = Matrix4.LookAt(_eye, _cen, _up);
 
 
             ////////////////////////////////////////////
@@ -174,90 +174,83 @@ namespace Triangles // Note: actual namespace depends on the project name.
             //////////////////////////////////////////
 
             //modelMatrix is connected with current object
-            modelMatrix = Matrix4.Identity;
+            _modelMatrix = Matrix4.Identity;
             //3. Translate branch south pole to the point (-0.5, 1.0)
-            modelMatrix = modelMatrix * Matrix4.CreateTranslation(new Vector3(-0.5f, 1.0f, 0.0f));
-            //modelMatrix *= Matrix4.CreateTranslation(new Vector3(-0.5f, 1.0f, 0.0f));
+            _modelMatrix = _modelMatrix * Matrix4.CreateTranslation(new Vector3(-0.5f, 1.0f, 0.0f));
 
             //2. Rotate cylinder 45 degrees to the left
-            modelMatrix = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), MathHelper.DegreesToRadians(45.0f)) * modelMatrix;
-            //modelMatrix *= Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), MathHelper.DegreesToRadians(45.0f));
+            _modelMatrix = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 0.0f, 1.0f), MathHelper.DegreesToRadians(45.0f)) * _modelMatrix;
 
             //1. Scale. Make cylinder thinner to look like branch
-            //modelMatrix *= Matrix4.CreateScale(new Vector3(0.05f, 1.0f, 0.05f));
-            modelMatrix = Matrix4.CreateScale(new Vector3(0.05f, 1.0f, 0.05f)) * modelMatrix;
+            _modelMatrix = Matrix4.CreateScale(new Vector3(0.05f, 1.0f, 0.05f)) * _modelMatrix;
 
             //modelViewMatrix consists of viewMatrix and modelMatrix
-            modelViewMatrix = modelMatrix * viewMatrix;
+            _modelViewMatrix = _modelMatrix * viewMatrix;
             //calculate normal matrix 
-            //modelViewMatrix.Invert();
-            //normalMatrix = modelViewMatrix;
-            Matrix4.Transpose(Matrix4.Invert(modelViewMatrix), out normalMatrix);
+            Matrix4.Transpose(Matrix4.Invert(_modelViewMatrix), out _normalMatrix);
             //finally calculate modelViewProjectionMatrix
-            modelViewProjectionMatrix = modelViewMatrix * projectionMatrix;
+            _modelViewProjectionMatrix = _modelViewMatrix * _projectionMatrix;
 
             //bind texture
-            GL.BindTexture(TextureTarget.Texture2D, texId[0]);
+            GL.BindTexture(TextureTarget.Texture2D, _texId[0]);
 
 
             //pass variables to the shaders
-            GL.UniformMatrix4(locMV,false, ref modelViewMatrix);
-            GL.UniformMatrix4(locN, false, ref normalMatrix);
-            GL.UniformMatrix4(locP, false, ref modelViewProjectionMatrix);
+            GL.UniformMatrix4(locMV,false, ref _modelViewMatrix);
+            GL.UniformMatrix4(locN, false, ref _normalMatrix);
+            GL.UniformMatrix4(locP, false, ref _modelViewProjectionMatrix);
             GL.Uniform1(texLoc, 0);
-            GL.Uniform1(locFlag, Convert.ToInt32(useTexture));
+            GL.Uniform1(locFlag, Convert.ToInt32(_useTexture));
 
             //draw branch
-            pBranch.draw();
+            _pBranch.Draw();
 
             //////////////////////////////////////////
             //////////////DRAW LEAF///////////////////
             //////////////////////////////////////////
 
             //modelMatrix is connected with current object
-            modelMatrix = Matrix4.Identity;
+            _modelMatrix = Matrix4.Identity;
 
             //3. Translate branch south pole to the north pole of branch
-            modelMatrix = Matrix4.CreateTranslation(new Vector3(-1.0f / (float)Math.Sqrt(2.0f) - 0.5f, 1.0f / (float)Math.Sqrt(2.0f) + 1.0f, 0.0f)) * modelMatrix;
+            _modelMatrix = Matrix4.CreateTranslation(new Vector3(-1.0f / (float)Math.Sqrt(2.0f) - 0.5f, 1.0f / (float)Math.Sqrt(2.0f) + 1.0f, 0.0f)) * _modelMatrix;
 
             //2. Scale. Make leaf smaller
-            modelMatrix = Matrix4.CreateScale(0.3f * new Vector3(1.0f, 1.0f, 1.0f)) * modelMatrix;
+            _modelMatrix = Matrix4.CreateScale(0.3f * new Vector3(1.0f, 1.0f, 1.0f)) * _modelMatrix;
 
             //1. Translate branch south pole to (0,0)
-            modelMatrix = Matrix4.CreateTranslation(new Vector3(0.0f, 0.0f, 0.0f)) * modelMatrix;
+            _modelMatrix = Matrix4.CreateTranslation(new Vector3(0.0f, 0.0f, 0.0f)) * _modelMatrix;
 
             //modelViewMatrix consists of viewMatrix and modelMatrix
-            modelViewMatrix = modelMatrix * viewMatrix;
+            _modelViewMatrix = _modelMatrix * viewMatrix;
             //calculate normal matrix 
-            Matrix4.Transpose(Matrix4.Invert(modelViewMatrix), out normalMatrix);
+            Matrix4.Transpose(Matrix4.Invert(_modelViewMatrix), out _normalMatrix);
             //finally calculate modelViewProjectionMatrix
-            modelViewProjectionMatrix = modelViewMatrix * projectionMatrix;
+            _modelViewProjectionMatrix = _modelViewMatrix * _projectionMatrix;
 
             //pass variables to the shaders
-            GL.UniformMatrix4(locMV, false, ref modelViewMatrix);
-            GL.UniformMatrix4(locN, false, ref normalMatrix);
-            GL.UniformMatrix4(locP, false, ref modelViewProjectionMatrix);
+            GL.UniformMatrix4(locMV, false, ref _modelViewMatrix);
+            GL.UniformMatrix4(locN, false, ref _normalMatrix);
+            GL.UniformMatrix4(locP, false, ref _modelViewProjectionMatrix);
 
             //draw leaf
-            pLeaf.draw();
-
+            _pLeaf.Draw();
 
             //end frame visualization
             Context.SwapBuffers();
-
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
-            display();
+            Display();
         }
 
 
 
         //////////////////////////////////////////////////////////////////////////
         ///IdleFunction
-        void update()
+        private void Update()
         {
             //make animation
             GLFW.PostEmptyEvent();
@@ -266,22 +259,15 @@ namespace Triangles // Note: actual namespace depends on the project name.
         ///is called when key on keyboard is pressed
         ///use SPACE to switch mode
         ///TODO: place camera transitions in this function
-        void keyboard(bool isSpace)
+        private void Keyboard(bool isSpace)
         {
             if (isSpace)
-                useTexture = !useTexture;
+                _useTexture = !_useTexture;
         }
-
-        ////////////////////////////////////////////////////////////////////////
-        ///this function is used in case of InitializationError
-        void emptydisplay()
-        {
-        }
-
         /////////////////////////////////////////////////////////////////////////
         ///is called when mouse button is pressed
         ///TODO: place camera rotations in this function
-        void mouse(MouseState state)
+        private void Mouse(MouseState state)
         {
             if (state[0])
             {
@@ -299,10 +285,10 @@ namespace Triangles // Note: actual namespace depends on the project name.
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
             var input = KeyboardState;
-            keyboard(input.IsKeyPressed(Keys.Space));
+            Keyboard(input.IsKeyPressed(Keys.Space));
             var mouseState = MouseState;
-            mouse(mouseState);
-            update();
+            Mouse(mouseState);
+            Update();
             base.OnUpdateFrame(args);
         }
 
@@ -310,13 +296,11 @@ namespace Triangles // Note: actual namespace depends on the project name.
 
         static void Main(string[] args)
         {
-            //const char* slVer = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
-            //cout << "GLSL Version: " << slVer << endl;
             using var window = new MyWindow();
 
             try
             {
-                string ver = GL.GetString(StringName.ShadingLanguageVersion);
+                var ver = GL.GetString(StringName.ShadingLanguageVersion);
                 Console.WriteLine($"GLSL Version: {ver}");
                 window.Run();
             }
@@ -326,7 +310,7 @@ namespace Triangles // Note: actual namespace depends on the project name.
             }
             finally
             {
-                GL.DeleteTextures(1, texId);
+                GL.DeleteTextures(1, _texId);
             }
         }
     }

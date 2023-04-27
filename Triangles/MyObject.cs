@@ -21,31 +21,31 @@ namespace Triangles
     //some object for drawing
     public class MyObject:IDisposable
     {
-        protected VertexData[] pData = new VertexData[2];
-        protected uint[] pIndices = new uint[2]; //pointer to indexes (list of vetrices) 
-        protected uint[] vbo = new uint[2];//VertexBufferObject one for MeshVertexData, another for Indexes
-        protected int vao = 0;//one VertexArrayObject
+        protected VertexData[] _data = new VertexData[2];
+        protected uint[] _indices = new uint[2]; //pointer to indexes (list of vetrices) 
+        protected uint[] _vbo = new uint[2];//VertexBufferObject one for MeshVertexData, another for Indexes
+        protected int _vao = 0;//one VertexArrayObject
 
         public MyObject()
         {
 
         }
     	//function for initialization
-	    public void initGLBuffers(uint programId, string posName,string norName,string texName)
+	    public void InitGLBuffers(uint programId, string posName,string norName,string texName)
         {
             unsafe
             {
-                vao = GL.GenVertexArray();
-                GL.BindVertexArray(vao);
+                _vao = GL.GenVertexArray();
+                GL.BindVertexArray(_vao);
 
-                GL.GenBuffers(2, vbo);
+                GL.GenBuffers(2, _vbo);
 
-                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo[0]);
-                GL.BufferData(BufferTarget.ArrayBuffer, pData.Length * sizeof(VertexData), pData, BufferUsageHint.StaticDraw);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo[0]);
+                GL.BufferData(BufferTarget.ArrayBuffer, _data.Length * sizeof(VertexData), _data, BufferUsageHint.StaticDraw);
 
                 GL.Enable(EnableCap.VertexArray);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, vbo[1]);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, pIndices.Length * sizeof(uint), pIndices, BufferUsageHint.StaticDraw);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _vbo[1]);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
 
                 var loc = GL.GetAttribLocation(programId, posName);
                 if (loc > -1)
@@ -69,34 +69,34 @@ namespace Triangles
             }
         }
         //function for drawing
-        public void draw()
+        public void Draw()
         {
-            GL.BindVertexArray(vao);
-            GL.DrawElements(PrimitiveType.Triangles, pIndices.Length,DrawElementsType.UnsignedInt, 0);
+            GL.BindVertexArray(_vao);
+            GL.DrawElements(PrimitiveType.Triangles, _indices.Length,DrawElementsType.UnsignedInt, 0);
             GL.BindVertexArray(0);
         }
 
         //generates two triangles
-        public virtual void initData()
+        public virtual void InitData()
         {
             int nTriangles = 2;
-            pData = new VertexData[4];
-            pIndices = new uint[3 * nTriangles];
+            _data = new VertexData[4];
+            _indices = new uint[3 * nTriangles];
             
-            for (int i = 0; i < pData.Length; i++)
+            for (int i = 0; i < _data.Length; i++)
             {
-                pData[i].pos = new Vector3(Convert.ToSingle(i % 2), (i > 1) ? 1 : 0, 0);
-                pData[i].nor = new Vector3(0, 0, 1);
-                pData[i].tex = new Vector2(Convert.ToSingle(i % 2), (i > 1) ? 1 : 0);
+                _data[i].pos = new Vector3(Convert.ToSingle(i % 2), (i > 1) ? 1 : 0, 0);
+                _data[i].nor = new Vector3(0, 0, 1);
+                _data[i].tex = new Vector2(Convert.ToSingle(i % 2), (i > 1) ? 1 : 0);
             }
-            pIndices[0] = 0; pIndices[1] = 1; pIndices[2] = 3;
-            pIndices[3 + 0] = 0; pIndices[3 + 1] = 2; pIndices[3 + 2] = 3;
+            _indices[0] = 0; _indices[1] = 1; _indices[2] = 3;
+            _indices[3 + 0] = 0; _indices[3 + 1] = 2; _indices[3 + 2] = 3;
         }
 
         public void Dispose()
         {
-            GL.DeleteBuffers(2, vbo);
-            GL.DeleteVertexArray(vao);
+            GL.DeleteBuffers(2, _vbo);
+            GL.DeleteVertexArray(_vao);
         }
     }
 }
